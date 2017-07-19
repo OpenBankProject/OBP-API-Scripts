@@ -1,0 +1,12 @@
+# -*- coding: utf-8 -*-
+#
+# Settings for this project, copy this file to settings.py
+
+
+BASE_URL = 'http://localhost:8080'
+API_VERSION = 'v3.0.0'
+
+USERNAME = ''
+PASSWORD = ''
+CONSUMER_KEY = '' 
+CONSUMER_SECRET = ''
