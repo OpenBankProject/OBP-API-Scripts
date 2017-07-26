@@ -25,7 +25,7 @@ class ImportATMs(ImportCSV):
                 'line_1': row[3],
                 'line_2': row[4],
                 'line_3': row[5],
-                'city': row[6],
+                'city': row[7] if not row[6] else row[6],
                 'state': row[8],
                 'postcode': row[9],
                 'country': row[10],
