@@ -3,8 +3,6 @@
 # Import products to given bank_id
 
 
-import sys
-
 from .csv import ImportCSV
 
 
@@ -36,4 +34,3 @@ class ImportProducts(ImportCSV):
             }
         }
         return data
-

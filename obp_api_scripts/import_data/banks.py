@@ -3,8 +3,6 @@
 # Import banks to the API
 
 
-import sys
-
 from .csv import ImportCSV
 
 
@@ -31,4 +29,3 @@ class ImportBanks(ImportCSV):
             },
         }
         return data
-

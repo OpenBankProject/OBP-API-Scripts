@@ -3,8 +3,6 @@
 # Import ATMs to the API
 
 
-import sys
-
 from .csv import ImportCSV
 
 
@@ -42,4 +40,3 @@ class ImportATMs(ImportCSV):
             },
         }
         return data
-

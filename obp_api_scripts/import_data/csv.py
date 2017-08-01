@@ -74,4 +74,3 @@ class ImportCSV(object):
         This must be implemented by child class!
         """
         raise(NotImplementedError)
-

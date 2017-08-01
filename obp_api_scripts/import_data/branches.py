@@ -3,8 +3,6 @@
 # Import branches to given bank id
 
 
-import sys
-
 from .csv import ImportCSV
 
 
@@ -17,7 +15,7 @@ class ImportBranches(ImportCSV):
         return urlpath
 
     def get_hours(self, row, idx_start):
-        hours = [] 
+        hours = []
         days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         idx = idx_start
         for day in days:
@@ -68,4 +66,3 @@ class ImportBranches(ImportCSV):
             }
         }
         return data
-
