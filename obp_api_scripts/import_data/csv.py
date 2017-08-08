@@ -45,6 +45,55 @@ class ImportCSV(object):
         if self.args_num > 1:
             self.bank_id = args[2]
 
+    def to_tribool(self, value):
+        """
+        Convert a given value to string triboolean as understood by the API
+        Possible return values are 'true', 'false', '' or the first char of value
+        """
+        if not value:
+            return ''
+        val = value.lower()
+        if val == 'yes':
+            return 'true'
+        elif val == 'no':
+            return 'false'
+        else:
+            # This is where we hopefully will never get to...
+            return value
+
+    def get_times(self, *data):
+        times = {
+            'monday': {
+                'opening_time': data[0],
+                'closing_time': data[1],
+            },
+            'tuesday': {
+                'opening_time': data[2],
+                'closing_time': data[3],
+            },
+            'wednesday': {
+                'opening_time': data[4],
+                'closing_time': data[5],
+            },
+            'thursday': {
+                'opening_time': data[6],
+                'closing_time': data[7],
+            },
+            'friday': {
+                'opening_time': data[8],
+                'closing_time': data[9],
+            },
+            'saturday': {
+                'opening_time': data[10],
+                'closing_time': data[11],
+            },
+            'sunday': {
+                'opening_time': data[12],
+                'closing_time': data[13],
+            },
+        }
+        return times
+
     def run(self):
         """
         Do the actual work by reading the CSV file and sending data to API
@@ -57,7 +106,7 @@ class ImportCSV(object):
                 row_number = 0
                 for row in reader:
                     data = self.get_data(row_number, row)
-                    LOGGER.info('Got data: {}'.format(data))
+                    LOGGER.info('Data to {} from CSV: {}'.format(self.method, data))
                     api.call(self.method, self.get_urlpath(), data)
                     row_number += 1
 

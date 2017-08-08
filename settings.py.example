@@ -10,3 +10,8 @@ USERNAME = ''
 PASSWORD = ''
 CONSUMER_KEY = '' 
 CONSUMER_SECRET = ''
+
+LICENSE = {
+    'id': 'copyright',
+    'name': 'Copyright 2017',
+}
