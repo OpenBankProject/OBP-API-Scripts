@@ -38,7 +38,9 @@ class ImportATMs(ImportCSV):
                 'license': LICENSE,
             },
             'located_at': row[13],
-            'has_deposit_capability': self.to_tribool(row[14]),
+            #'has_deposit_capability': self.to_tribool(row[14]),
+            # Hard-code to false for the time being:
+            'has_deposit_capability': 'false',
             'is_accessible': self.to_tribool(row[15]),
             'more_info': '',
         }
