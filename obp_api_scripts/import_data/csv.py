@@ -48,7 +48,9 @@ class ImportCSV(object):
     def to_tribool(self, value):
         """
         Convert a given value to string triboolean as understood by the API
-        Possible return values are 'true', 'false', '' or the first char of value
+        Possible return values are 'true', 'false', '' or the actual value
+        This method is prone to be changed as it seems the API's implementation
+        does not work the way the author was told it would
         """
         if not value:
             return ''
