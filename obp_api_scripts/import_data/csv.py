@@ -107,9 +107,12 @@ class ImportCSV(object):
                 next(reader, None)  # skip header
                 row_number = 0
                 for row in reader:
-                    data = self.get_data(row_number, row)
-                    LOGGER.info('Data to {} from CSV: {}'.format(self.method, data))
-                    api.call(self.method, self.get_urlpath(), data)
+                    try:
+                        data = self.get_data(row_number, row)
+                        LOGGER.info('Data to {} from CSV: {}'.format(self.method, data))
+                        api.call(self.method, self.get_urlpath(), data)
+                    except ImportCSVError as err:
+                        LOGGER.error(err)
                     row_number += 1
 
     def get_urlpath(self, row):
@@ -118,6 +121,16 @@ class ImportCSV(object):
         This must be implemented by child class!
         """
         raise(NotImplementedError)
+
+    def check_bank_id(self, row_number, row):
+        """
+        Check if the bank id in data is the same as the bank id supplied when
+        calling the script
+        """
+        if row[0] != self.bank_id:
+            msg = 'Bank id "{}" in row {} is not the same as "{}"'.format(
+                row[0], row_number, self.bank_id)
+            raise ImportCSVError(msg)
 
     def get_data(self, row_number, row):
         """

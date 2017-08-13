@@ -16,6 +16,7 @@ class ImportATMs(ImportCSV):
         return urlpath
 
     def get_data(self, row_number, row):
+        self.check_bank_id(row_number, row)
         data = {
             'bank_id': row[0],
             'id': row[1],
