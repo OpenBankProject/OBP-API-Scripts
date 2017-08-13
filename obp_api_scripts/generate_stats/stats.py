@@ -5,6 +5,7 @@
 
 import datetime
 import psycopg2
+from functools import reduce
 
 from settings import DATABASE, EXCLUDE_APPS, DATE_START, DATE_END, SERVER_TIMEZONE
 
