@@ -111,10 +111,8 @@ class Stats(object):
         query = query_fmt.format(exclude_apps)
         self.cursor.execute(query)
         result = self.cursor.fetchall()
-        names = []
-        for name in result:
-            names.append(name[0])
-        print('App names ({}): {}'.format(len(names), sorted(names)))
+        names = sorted(map(lambda x: x[0], result))
+        print('App names ({}): {}'.format(len(names), names))
 
     def avg_number_of_calls_per_day(self):
         """
@@ -151,7 +149,7 @@ class Stats(object):
             limit)
         self.cursor.execute(query)
         result = self.cursor.fetchall()
-        print('{} Most used API calls:'.format(limit))
+        print('{} most used API calls:'.format(limit))
         for call in result:
             print('{}: {}'.format(call[0], call[1]))
 
@@ -166,7 +164,7 @@ class Stats(object):
             self.sql['date_range'], self.sql['exclude_apps'], limit)
         self.cursor.execute(query)
         result = self.cursor.fetchall()
-        print('{} Most used Warehouse calls:'.format(limit))
+        print('{} most used Warehouse calls:'.format(limit))
         for call in result:
             print('{}: {}'.format(call[0], call[1]))
 
@@ -199,6 +197,27 @@ class Stats(object):
         delta = datetime.timedelta(seconds=avg)
         msg = 'Average time from consumer registration to first API call: {}'
         print(msg.format(delta))
+
+    def most_diverse_usage(self, limit):
+        """
+        Prints most diverse usage of API calls by developer email address
+        """
+        # Naively adding consumer.id to SELECT will change ranking if some
+        # people use same email addressfor different consumers
+        query = "SELECT COUNT(DISTINCT mappedmetric.implementedbypartialfunction) AS count, consumer.developeremail FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND {} AND {} AND mappedmetric.consumerid = CAST(consumer.id AS character varying) GROUP BY consumer.developeremail ORDER BY count DESC LIMIT {};".format(  # noqa
+            self.sql['date_range'], self.sql['exclude_apps'], limit)
+        self.cursor.execute(query)
+        top_callers = self.cursor.fetchall()
+        msg = '{} most diverse usage of API calls by developer email address:'
+        print(msg.format(limit))
+        for caller in top_callers:
+            query = "SELECT DISTINCT mappedmetric.implementedbypartialfunction FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND mappedmetric.consumerid = CAST(consumer.id AS character varying) AND consumer.developeremail = '{}' AND {}".format(  # noqa
+                caller[1], self.sql['date_range'])
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+            calls = map(lambda x: x[0], result)
+            msg = '{}: {}\n\tCalls: {}'
+            print(msg.format(caller[0], caller[1], ', '.join(calls)))
 
     def calls_per_day(self):
         """
@@ -245,3 +264,5 @@ class Stats(object):
         self.most_used_warehouse_calls(5)
         print('-'*78)
         self.avg_time_from_consumer_registration_to_first_api_call()
+        print('-'*78)
+        self.most_diverse_usage(5)
