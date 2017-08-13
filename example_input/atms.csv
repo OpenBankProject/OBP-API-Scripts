@@ -1,0 +1,1 @@
+Bank_ID * (must match banks.bank_id),ATM_id,Name,Address 1,Address 2,Address 3,City/place,Suburb,State,Postcode,Country Code (2 letter  ISO 3166-1 alpha-2),Latitude,Longitude,ATM Located at,Deposit Capability,Disability Access,Mon From,Mon To,Tue From,Tue To,Wed From,Wed To,Thu From,Thu To,Fri From,Fri To,Sat From,Sat To,Sun From,Sun To

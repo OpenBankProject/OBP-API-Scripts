@@ -14,6 +14,11 @@ All these are using DirectLogin
 - When you are done, `deactivate` the virtualenv
 
 
+## Example input
+
+- In directory `example_input` you will find CSV/JSON files which should explain the format the scripts expect the input data to be.
+
+
 ## Import Data
 
 Python scripts to import data into the API
