@@ -245,9 +245,3 @@ class Stats(object):
         self.most_used_warehouse_calls(5)
         print('-'*78)
         self.avg_time_from_consumer_registration_to_first_api_call()
-
-
-if __name__ == '__main__':
-    with Stats(DATE_START, DATE_END, EXCLUDE_APPS) as stats:
-        # stats.total_calls()
-        stats.run_all()
