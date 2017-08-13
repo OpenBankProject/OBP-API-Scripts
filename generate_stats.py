@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+# Little script to answer a few questions about statistics not easily possible
+# using SQL only. Run on the server where the API's database is deployed.
+#
+# Usage: ./generate_stats.py
+
+from obp_api_scripts.generate_stats.stats import Stats
+
+
+with Stats() as stats:
+    # stats.total_calls()
+    stats.run_all()

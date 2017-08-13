@@ -33,3 +33,6 @@ You probably have to edit the importer classes (method `get_data`) to match your
 - `./print_account_data.py <json file>`
 
 
+## Generate statistics
+
+This is a bit different as it does not use the API, but talks directly to the database used by the API. You need to configure the settings accordingly. Run it _on the database server_ with `./generate_stats.py`

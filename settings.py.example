@@ -15,3 +15,19 @@ LICENSE = {
     'id': 'copyright',
     'name': 'Copyright 2017',
 }
+
+
+
+# This is for generate_stats.py only:
+
+DATABASE = {
+    'host': 'localhost',
+    'name': '',
+    'user': '',
+    'password': '',
+}
+
+EXCLUDE_APPS = []
+DATE_START = '2017-07-05 00:00:00'
+DATE_END = '2017-07-08 00:00:00'
+SERVER_TIMEZONE = 'UTC'
