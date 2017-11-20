@@ -158,10 +158,11 @@ class Stats(object):
         """
         Prints most used warehouse API calls
         """
-        # Not giving results, url is always empty since recently before
-        # hackathon. :(. Also would not show request payload which would
-        # contain the query
-        query = "SELECT url, COUNT(*) AS count FROM mappedmetric WHERE implementedbypartialfunction = 'elasticSearchWarehouse' AND {} AND {} GROUP BY url ORDER BY count DESC LIMIT {};".format(  # noqa
+        # Since elasticSearchWarehouseV300 was introduced in ca. June 2017
+        # the URL does not contain parameters anymore. We cannot access the
+        # payload from the POST and hence do not know how ES was actually
+        # used.
+        query = "SELECT url, COUNT(*) AS count FROM mappedmetric WHERE implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} GROUP BY url ORDER BY count DESC LIMIT {};".format(  # noqa
             self.sql['date_range'], self.sql['exclude_apps'], limit)
         self.cursor.execute(query)
         result = self.cursor.fetchall()
