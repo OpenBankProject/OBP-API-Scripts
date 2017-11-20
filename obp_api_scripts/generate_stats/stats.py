@@ -170,6 +170,19 @@ class Stats(object):
         for call in result:
             print('{}: {}'.format(call[0], call[1]))
 
+    def users_with_CanSearchWarehouse(self):
+        """
+        Prints the users and their total number with access to the warehouse
+        """
+        query = "SELECT DISTINCT resourceuser.name_, resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.name_"
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        for user in result:
+            print('{} ({})'.format(user[0], user[1]))
+        print('---')
+        print('Total users with role CanSearchWarehouse: {}'.format(
+            len(result)))
+
     def avg_time_from_consumer_registration_to_first_api_call(self):
         """
         Prints average time from consumer registration to first API call
@@ -264,6 +277,8 @@ class Stats(object):
         self.most_used_api_calls(5)
         print('-'*78)
         self.most_used_warehouse_calls(5)
+        print('-'*78)
+        self.users_with_CanSearchWarehouse()
         print('-'*78)
         self.avg_time_from_consumer_registration_to_first_api_call()
         print('-'*78)
