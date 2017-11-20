@@ -7,7 +7,8 @@ import datetime
 import psycopg2
 from functools import reduce
 
-from settings import DATABASE, EXCLUDE_APPS, DATE_START, DATE_END, SERVER_TIMEZONE
+from settings import (
+    DATABASE, EXCLUDE_APPS, DATE_START, DATE_END, SERVER_TIMEZONE)
 
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -97,7 +98,9 @@ class Stats(object):
         result = self.cursor.fetchone()
         print('Number of apps with distinct names: {}'.format(result[0]))
 
-        query = query.replace('COUNT(DISTINCT name)', 'COUNT(DISTINCT developeremail)')
+        query = query.replace(
+            'COUNT(DISTINCT name)',
+            'COUNT(DISTINCT developeremail)')
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         msg = 'Number of apps with distinct developer email addresses: {}'
@@ -175,7 +178,7 @@ class Stats(object):
         """
         Prints the users and their total number with access to the warehouse
         """
-        query = "SELECT DISTINCT resourceuser.name_, resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.name_"
+        query = "SELECT DISTINCT resourceuser.name_, resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.name_"  # noqa
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         for user in result:
