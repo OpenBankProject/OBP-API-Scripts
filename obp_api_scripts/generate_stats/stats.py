@@ -144,7 +144,7 @@ class Stats(object):
         """
         Prints most used API calls
         """
-        query = "SELECT url, implementedbypartialfunction, COUNT(*) AS count FROM mappedmetric WHERE {} AND {} GROUP BY url, implementedbypartialfunction ORDER BY count DESC LIMIT {};".format(  # noqa
+        query = "SELECT verb, url, implementedbypartialfunction, COUNT(*) AS count FROM mappedmetric WHERE {} AND {} GROUP BY verb, url, implementedbypartialfunction ORDER BY count DESC LIMIT {};".format(  # noqa
             self.sql['date_range'],
             self.sql['exclude_apps'],
             limit)
@@ -152,8 +152,8 @@ class Stats(object):
         result = self.cursor.fetchall()
         print('{} most used API calls:'.format(limit))
         for call in result:
-            out = call[1] if call[1] else call[0]
-            print('{}: {}'.format(out, call[2]))
+            out = call[2] if call[2] else call[1]
+            print('{} {}: {}'.format(call[0], out, call[3]))
 
     def most_used_warehouse_calls(self, limit):
         """
