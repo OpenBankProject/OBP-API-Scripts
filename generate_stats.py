@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Little script to answer a few questions about statistics not easily possible
 # using SQL only. Run on the server where the API's database is deployed.
