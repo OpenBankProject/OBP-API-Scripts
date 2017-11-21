@@ -8,6 +8,7 @@ import psycopg2
 import statistics
 
 from settings import (
+    ACTIVE_APPS_DATE_START,
     APPNAME_APIEXPLORER,
     DATABASE,
     DATE_START, DATE_END,
@@ -156,7 +157,27 @@ class Stats(object):
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         names = sorted(map(lambda x: x[0], result))
-        print('App names ({}): {}'.format(len(names), names))
+        print('{} app names: {}'.format(len(names), names))
+
+    @pretty_decoration
+    def active_apps(self):
+        """
+        Prints the names of apps using the API after a certain date
+        """
+        date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
+        date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
+        number_of_days = (date_end - date_start).days
+        query = "SELECT DISTINCT appname FROM mappedmetric WHERE date_c >= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss') AND {} AND {} AND {};".format(  # noqa
+            ACTIVE_APPS_DATE_START,
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+        )
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        names = sorted(map(lambda x: x[0], result))
+        print('{} apps used after {}: {}'.format(
+            len(names), ACTIVE_APPS_DATE_START, names))
 
     @pretty_decoration
     def avg_number_of_calls_per_day(self):
@@ -395,6 +416,7 @@ class Stats(object):
         self.calls_per_hour()
         self.apps()
         self.app_names()
+        self.active_apps()
         self.avg_number_of_calls_per_day()
         self.avg_response_time()
         self.most_used_api_calls(30)

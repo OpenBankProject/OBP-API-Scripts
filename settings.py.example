@@ -30,6 +30,12 @@ LICENSE = {
 # The following settings are for generate_stats.py only:
 ###################################################################
 
+
+# Start date after which an 'active' app is determined
+# For special events like hackathons
+ACTIVE_APPS_DATE_START = '2017-09-01 00:00:00'
+
+# Name of app used to register API Explorer
 APPNAME_APIEXPLORER = 'API Explorer'
 
 # Database connection details
