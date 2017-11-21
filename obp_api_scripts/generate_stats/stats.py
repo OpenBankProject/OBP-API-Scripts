@@ -5,7 +5,7 @@
 
 import datetime
 import psycopg2
-from functools import reduce
+import statistics
 
 from settings import (
     DATABASE, EXCLUDE_APPS, DATE_START, DATE_END, SERVER_TIMEZONE)
@@ -185,7 +185,7 @@ class Stats(object):
             len(result)))
 
     @pretty_decoration
-    def avg_time_from_consumer_registration_to_first_api_call(self):
+    def median_time_from_consumer_registration_to_first_api_call(self):
         """
         Prints average time from consumer registration to first API call
         """
@@ -209,10 +209,9 @@ class Stats(object):
                 print('Time to first call for consumer {}: {}'.format(
                     consumer[1], time_to_first_call))
                 times_to_first_call.append(time_to_first_call.total_seconds())
-        sum = reduce((lambda x, y: x + y), times_to_first_call)
-        avg = sum / len(times_to_first_call)
-        delta = datetime.timedelta(seconds=avg)
-        msg = 'Average time from consumer registration to first API call: {}'
+        median = statistics.median(times_to_first_call)
+        delta = datetime.timedelta(seconds=median)
+        msg = 'Median time from consumer registration to first API call: {}'
         print(msg.format(delta))
 
     @pretty_decoration
@@ -299,5 +298,5 @@ class Stats(object):
         self.most_used_api_calls(5)
         self.most_used_warehouse_calls(5)
         self.users_with_CanSearchWarehouse()
-        self.avg_time_from_consumer_registration_to_first_api_call()
+        self.median_time_from_consumer_registration_to_first_api_call()
         self.most_diverse_usage(5)
