@@ -99,7 +99,7 @@ class Stats(object):
     @pretty_decoration
     def total_calls_apiexplorer(self):
         """
-        Prints how many calls were made in total
+        Prints how many calls were made using the API Explorer
         """
         query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND appname = '{}';".format(  # noqa
             self.sql['date_range'],
@@ -109,6 +109,21 @@ class Stats(object):
         calls = self.cursor.fetchone()[0]
         percentage = round(calls * 100 / self.total_calls)
         print('Total calls using API Explorer: {} ({}%)'.format(calls, percentage))
+
+    @pretty_decoration
+    def total_calls_pre_v300(self):
+        """
+        Prints how many calls were made using a version prior to v3.0.0
+        v3.0.0 is the 'good' version where things are logged properly.
+        Many of your SDKs and apps still use old version, though.
+        """
+        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND implementedinversion < 'v3.0.0';".format(  # noqa
+            self.sql['date_range'],
+        )
+        self.cursor.execute(query)
+        calls = self.cursor.fetchone()[0]
+        percentage = round(calls * 100 / self.total_calls)
+        print('Total calls using version < v3.0.0: {} ({}%)'.format(calls, percentage))
 
     @pretty_decoration
     def apps(self):
@@ -374,6 +389,7 @@ class Stats(object):
     def run_all(self):
         self.total_calls()
         self.total_calls_apiexplorer()
+        self.total_calls_pre_v300()
         self.calls_per_day()
         self.calls_per_half_day()
         self.calls_per_hour()
