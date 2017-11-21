@@ -101,8 +101,10 @@ class Stats(object):
         """
         Prints how many calls were made using the API Explorer
         """
-        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND appname = '{}';".format(  # noqa
+        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND {} AND {} AND appname = '{}';".format(  # noqa
             self.sql['date_range'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
             APPNAME_APIEXPLORER,
         )
         self.cursor.execute(query)
