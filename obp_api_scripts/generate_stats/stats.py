@@ -38,12 +38,11 @@ class Stats(object):
     """
     Calculate statistics about the usage of a sandbox
     """
-    total_calls = 0
 
     def __init__(self):
         self.date_start = DATE_START
         self.date_end = DATE_END
-
+        self.results = {}
         self.sql = {
             'date_range': SQL_DATE_RANGE_FORMAT.format(
                 self.date_start, self.date_end),
@@ -57,7 +56,7 @@ class Stats(object):
                 ', '.join(wrapped))
         if EXCLUDE_FUNCTIONS:
             wrapped = map(lambda x: "'{}'".format(x), EXCLUDE_FUNCTIONS)
-            self.sql['exclude_functions'] = 'implementedbypartialfunction NOT IN ({})'.format(
+            self.sql['exclude_functions'] = 'implementedbypartialfunction NOT IN ({})'.format(  # noqa
                 ', '.join(wrapped))
         if EXCLUDE_URL_PATTERN:
             self.sql['exclude_url_pattern'] = "url NOT LIKE '{}'".format(
@@ -94,8 +93,8 @@ class Stats(object):
         )
         self.cursor.execute(query)
         result = self.cursor.fetchone()
-        self.total_calls = result[0]
-        print('Total calls: {}'.format(self.total_calls))
+        self.results['total_calls'] = result[0]
+        print('Total calls: {}'.format(self.results['total_calls']))
 
     @pretty_decoration
     def total_calls_apiexplorer(self):
@@ -108,8 +107,11 @@ class Stats(object):
         )
         self.cursor.execute(query)
         calls = self.cursor.fetchone()[0]
-        percentage = round(calls * 100 / self.total_calls)
-        print('Total calls using API Explorer: {} ({}%)'.format(calls, percentage))
+        percentage = 100
+        if 'total_calls' in self.results:
+            percentage = round(calls * 100 / self.results['total_calls'])
+        print('Total calls using API Explorer: {} ({}%)'.format(
+            calls, percentage))
 
     @pretty_decoration
     def total_calls_pre_v300(self):
@@ -118,13 +120,19 @@ class Stats(object):
         v3.0.0 is the 'good' version where things are logged properly.
         Many of your SDKs and apps still use old version, though.
         """
-        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND implementedinversion < 'v3.0.0';".format(  # noqa
+        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND {} AND {} AND {} AND implementedinversion < 'v3.0.0';".format(  # noqa
             self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
         )
         self.cursor.execute(query)
         calls = self.cursor.fetchone()[0]
-        percentage = round(calls * 100 / self.total_calls)
-        print('Total calls using version < v3.0.0: {} ({}%)'.format(calls, percentage))
+        percentage = 100
+        if 'total_calls' in self.results:
+            percentage = round(calls * 100 / self.results['total_calls'])
+        print('Total calls using version < v3.0.0: {} ({}%)'.format(
+            calls, percentage))
 
     @pretty_decoration
     def apps(self):
@@ -164,9 +172,6 @@ class Stats(object):
         """
         Prints the names of apps using the API after a certain date
         """
-        date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
-        date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
-        number_of_days = (date_end - date_start).days
         query = "SELECT DISTINCT appname FROM mappedmetric WHERE date_c >= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss') AND {} AND {} AND {};".format(  # noqa
             ACTIVE_APPS_DATE_START,
             self.sql['exclude_apps'],
