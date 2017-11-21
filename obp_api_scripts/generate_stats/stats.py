@@ -15,6 +15,19 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 SQL_DATE_RANGE_FORMAT = "date_c >= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss') AND date_c <= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss')"  # noqa
 
 
+def pretty_decoration(function):
+    """
+    Puts some pretty decoration around a function call
+    """
+    def wrapper(*args, **kwargs):
+        print('-' * 78)
+        result = function(*args, **kwargs)
+        print('-' * 78)
+        print('\n')
+        return result
+    return wrapper
+
+
 class Stats(object):
     """
     Calculate statistics about the usage of a sandbox
@@ -52,6 +65,7 @@ class Stats(object):
         self.cursor.close()
         self.connection.close()
 
+    @pretty_decoration
     def total_calls(self):
         """
         Prints how many calls were made in total
@@ -63,30 +77,7 @@ class Stats(object):
         result = self.cursor.fetchone()
         print('Total calls: {}'.format(result[0]))
 
-    def calls_per_delta(self, **delta):
-        """
-        Prints how many calls were made in total per given delta
-        """
-        query_fmt = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {};'
-        query_fmt = query_fmt.format(
-            SQL_DATE_RANGE_FORMAT,
-            self.sql['exclude_apps'])
-        date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
-        date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
-        date_from = date_start
-        date_to = date_start + datetime.timedelta(**delta)
-        sum = 0
-        while date_to <= date_end:
-            query = query_fmt.format(date_from, date_to)
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
-            print('{} - {} # {}'.format(
-                date_from, date_to, result[0]))
-            sum += result[0]
-            date_from = date_to
-            date_to = date_to + datetime.timedelta(**delta)
-        print('Sanity check: {} calls'.format(sum))
-
+    @pretty_decoration
     def apps(self):
         """
         Prints number of apps with distinct developer email addresses
@@ -106,6 +97,7 @@ class Stats(object):
         msg = 'Number of apps with distinct developer email addresses: {}'
         print(msg.format(result[0]))
 
+    @pretty_decoration
     def app_names(self):
         """
         Prints app names
@@ -118,6 +110,7 @@ class Stats(object):
         names = sorted(map(lambda x: x[0], result))
         print('App names ({}): {}'.format(len(names), names))
 
+    @pretty_decoration
     def avg_number_of_calls_per_day(self):
         """
         Prints average number of calls per day
@@ -131,6 +124,7 @@ class Stats(object):
         result = self.cursor.fetchone()
         print('Avg number of calls per day: {}'.format(result[0]))
 
+    @pretty_decoration
     def avg_response_time(self):
         """
         Prints average response time
@@ -143,6 +137,7 @@ class Stats(object):
         response_time = int(round(result[0]))
         print('Avg response time: {} ms'.format(response_time))
 
+    @pretty_decoration
     def most_used_api_calls(self, limit):
         """
         Prints most used API calls
@@ -158,6 +153,7 @@ class Stats(object):
             out = call[2] if call[2] else call[1]
             print('{} {}: {}'.format(call[0], out, call[3]))
 
+    @pretty_decoration
     def most_used_warehouse_calls(self, limit):
         """
         Prints most used warehouse API calls
@@ -174,6 +170,7 @@ class Stats(object):
         for call in result:
             print('{}: {}'.format(call[0], call[1]))
 
+    @pretty_decoration
     def users_with_CanSearchWarehouse(self):
         """
         Prints the users and their total number with access to the warehouse
@@ -181,12 +178,13 @@ class Stats(object):
         query = "SELECT DISTINCT resourceuser.name_, resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.name_"  # noqa
         self.cursor.execute(query)
         result = self.cursor.fetchall()
+        print('Users with role CanSearchWarehouse:')
         for user in result:
             print('{} ({})'.format(user[0], user[1]))
-        print('---')
         print('Total users with role CanSearchWarehouse: {}'.format(
             len(result)))
 
+    @pretty_decoration
     def avg_time_from_consumer_registration_to_first_api_call(self):
         """
         Prints average time from consumer registration to first API call
@@ -217,6 +215,7 @@ class Stats(object):
         msg = 'Average time from consumer registration to first API call: {}'
         print(msg.format(delta))
 
+    @pretty_decoration
     def most_diverse_usage(self, limit):
         """
         Prints most diverse usage of API calls by developer email address
@@ -238,6 +237,31 @@ class Stats(object):
             msg = '{}: {}\n\tCalls: {}'
             print(msg.format(caller[0], caller[1], ', '.join(calls)))
 
+    def calls_per_delta(self, **delta):
+        """
+        Prints how many calls were made in total per given delta
+        """
+        query_fmt = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {};'
+        query_fmt = query_fmt.format(
+            SQL_DATE_RANGE_FORMAT,
+            self.sql['exclude_apps'])
+        date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
+        date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
+        date_from = date_start
+        date_to = date_start + datetime.timedelta(**delta)
+        sum = 0
+        while date_to <= date_end:
+            query = query_fmt.format(date_from, date_to)
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            print('{} - {} # {}'.format(
+                date_from, date_to, result[0]))
+            sum += result[0]
+            date_from = date_to
+            date_to = date_to + datetime.timedelta(**delta)
+        print('Sanity check: {} calls'.format(sum))
+
+    @pretty_decoration
     def calls_per_day(self):
         """
         Convenience function to print number of calls per day
@@ -245,6 +269,7 @@ class Stats(object):
         print('Calls per Day (Server timezone is {}):'.format(SERVER_TIMEZONE))
         self.calls_per_delta(days=1)
 
+    @pretty_decoration
     def calls_per_half_day(self):
         """
         Convenience function to print number of calls per half day
@@ -253,6 +278,7 @@ class Stats(object):
         print(msg.format(SERVER_TIMEZONE))
         self.calls_per_delta(hours=12)
 
+    @pretty_decoration
     def calls_per_hour(self):
         """
         Convenience function to print number of calls per hour
@@ -263,27 +289,15 @@ class Stats(object):
 
     def run_all(self):
         self.total_calls()
-        print('-'*78)
         self.calls_per_day()
-        print('-'*78)
         self.calls_per_half_day()
-        print('-'*78)
         self.calls_per_hour()
-        print('-'*78)
         self.apps()
-        print('-'*78)
         self.app_names()
-        print('-'*78)
         self.avg_number_of_calls_per_day()
-        print('-'*78)
         self.avg_response_time()
-        print('-'*78)
         self.most_used_api_calls(5)
-        print('-'*78)
         self.most_used_warehouse_calls(5)
-        print('-'*78)
         self.users_with_CanSearchWarehouse()
-        print('-'*78)
         self.avg_time_from_consumer_registration_to_first_api_call()
-        print('-'*78)
         self.most_diverse_usage(5)
