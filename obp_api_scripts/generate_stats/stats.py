@@ -112,7 +112,7 @@ class Stats(object):
         percentage = 100
         if 'total_calls' in self.results:
             percentage = round(calls * 100 / self.results['total_calls'])
-        print('Total calls using API Explorer: {} ({}%)'.format(
+        print('Total authenticated calls using API Explorer: {} ({}%)'.format(
             calls, percentage))
 
     @pretty_decoration
