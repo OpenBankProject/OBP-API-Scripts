@@ -3,23 +3,34 @@
 # Settings for this project, copy this file to settings.py
 
 
+# Base URL of the API
 BASE_URL = 'http://localhost:8080'
+
+# API version to use for requests
 API_VERSION = 'v3.0.0'
 
+# Username for DirectLogin
 USERNAME = ''
+# Password for DirectLogin
 PASSWORD = ''
+# Consumer key of the app registered with the API
 CONSUMER_KEY = '' 
+# Consumer secret of the app registered with the API
 CONSUMER_SECRET = ''
 
+# License dictionary used for some API calls
+# Leave as is if you do not know what to do with it
 LICENSE = {
     'id': 'copyright',
     'name': 'Copyright 2017',
 }
 
 
+###################################################################
+# The following settings are for generate_stats.py only:
+###################################################################
 
-# This is for generate_stats.py only:
-
+# Database connection details
 DATABASE = {
     'host': 'localhost',
     'name': '',
@@ -27,7 +38,13 @@ DATABASE = {
     'password': '',
 }
 
-EXCLUDE_APPS = []
+# If you do not want non-authenticated requests from e.g. API Explorer or SoFi, add 'null' to EXCLUDE_APPS
+EXCLUDE_APPS = ['null']
+
+# When the collection of data should start
 DATE_START = '2017-07-05 00:00:00'
+# When the collection of data should end
 DATE_END = '2017-07-08 00:00:00'
+
+# Timezone of the database server
 SERVER_TIMEZONE = 'UTC'
