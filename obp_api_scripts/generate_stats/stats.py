@@ -203,6 +203,24 @@ class Stats(object):
             print('{}: {}'.format(call[0], call[1]))
 
     @pretty_decoration
+    def top_apps_using_warehouse(self, limit):
+        """
+        Prints the top apps using the Elasticsearch warehouse
+        """
+        query = "SELECT mappedmetric.appname as appname, consumer.description as appdescription, COUNT(*) AS count FROM mappedmetric, consumer WHERE mappedmetric.appname = consumer.name AND mappedmetric.implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} AND {} AND {} GROUP BY appname, appdescription ORDER BY count DESC LIMIT {};".format(  # noqa
+            self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+            limit,
+        )
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+        print('{} top apps using the Warehouse:'.format(limit))
+        for call in result:
+            print('{}: {}\n{}\n'.format(call[0], call[2], call[1]))
+
+    @pretty_decoration
     def users_with_CanSearchWarehouse(self):
         """
         Prints the users and their total number with access to the warehouse
@@ -345,8 +363,9 @@ class Stats(object):
         self.app_names()
         self.avg_number_of_calls_per_day()
         self.avg_response_time()
-        self.most_used_api_calls(5)
-        self.most_used_warehouse_calls(5)
+        self.most_used_api_calls(30)
+        self.most_used_warehouse_calls(10)
+        self.top_apps_using_warehouse(10)
         self.users_with_CanSearchWarehouse()
         self.median_time_from_consumer_registration_to_first_api_call()
         self.most_diverse_usage(5)
