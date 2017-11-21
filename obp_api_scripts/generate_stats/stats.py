@@ -8,7 +8,11 @@ import psycopg2
 import statistics
 
 from settings import (
-    DATABASE, EXCLUDE_APPS, DATE_START, DATE_END, SERVER_TIMEZONE)
+    DATABASE,
+    DATE_START, DATE_END,
+    EXCLUDE_APPS, EXCLUDE_FUNCTIONS, EXCLUDE_URL_PATTERN,
+    SERVER_TIMEZONE
+)
 
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -41,11 +45,20 @@ class Stats(object):
             'date_range': SQL_DATE_RANGE_FORMAT.format(
                 self.date_start, self.date_end),
             'exclude_apps': "appname NOT IN ('')",
+            'exclude_functions': "implementedbypartialfunction NOT IN ('')",
+            'exclude_url_pattern': "url NOT LIKE ''",
         }
         if EXCLUDE_APPS:
             wrapped = map(lambda x: "'{}'".format(x), EXCLUDE_APPS)
             self.sql['exclude_apps'] = 'appname NOT IN ({})'.format(
                 ', '.join(wrapped))
+        if EXCLUDE_FUNCTIONS:
+            wrapped = map(lambda x: "'{}'".format(x), EXCLUDE_FUNCTIONS)
+            self.sql['exclude_functions'] = 'implementedbypartialfunction NOT IN ({})'.format(
+                ', '.join(wrapped))
+        if EXCLUDE_URL_PATTERN:
+            self.sql['exclude_url_pattern'] = "url NOT LIKE '{}'".format(
+                EXCLUDE_URL_PATTERN)
 
         connstring = "host='{}' dbname='{}' user='{}' password='{}'"
         self.connection = psycopg2.connect(connstring.format(
@@ -70,9 +83,12 @@ class Stats(object):
         """
         Prints how many calls were made in total
         """
-        query = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {};'.format(
+        query = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {} AND {} AND {};'.format(  # noqa
             self.sql['date_range'],
-            self.sql['exclude_apps'])
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+        )
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         print('Total calls: {}'.format(result[0]))
@@ -118,8 +134,13 @@ class Stats(object):
         date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
         date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
         number_of_days = (date_end - date_start).days
-        query = "SELECT (SELECT COUNT(*) FROM mappedmetric WHERE {} AND {}) / {};".format(  # noqa
-            self.sql['date_range'], self.sql['exclude_apps'], number_of_days)
+        query = "SELECT (SELECT COUNT(*) FROM mappedmetric WHERE {} AND {} AND {} AND {}) / {};".format(  # noqa
+            self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+            number_of_days,
+        )
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         print('Avg number of calls per day: {}'.format(result[0]))
@@ -129,9 +150,12 @@ class Stats(object):
         """
         Prints average response time
         """
-        query_fmt = 'SELECT AVG(duration) FROM mappedmetric WHERE {} AND {};'
-        query = query_fmt.format(
-            self.sql['date_range'], self.sql['exclude_apps'])
+        query = 'SELECT AVG(duration) FROM mappedmetric WHERE {} AND {} AND {} AND {};'.format(  # noqa
+            self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+        )
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         response_time = int(round(result[0]))
@@ -142,10 +166,13 @@ class Stats(object):
         """
         Prints most used API calls
         """
-        query = "SELECT verb, url, implementedbypartialfunction, COUNT(*) AS count FROM mappedmetric WHERE {} AND {} GROUP BY verb, url, implementedbypartialfunction ORDER BY count DESC LIMIT {};".format(  # noqa
+        query = "SELECT verb, url, implementedbypartialfunction, COUNT(*) AS count FROM mappedmetric WHERE {} AND {} AND {} AND {} GROUP BY verb, url, implementedbypartialfunction ORDER BY count DESC LIMIT {};".format(  # noqa
             self.sql['date_range'],
             self.sql['exclude_apps'],
-            limit)
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+            limit,
+        )
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         print('{} most used API calls:'.format(limit))
@@ -162,8 +189,13 @@ class Stats(object):
         # the URL does not contain parameters anymore. We cannot access the
         # payload from the POST and hence do not know how ES was actually
         # used.
-        query = "SELECT url, COUNT(*) AS count FROM mappedmetric WHERE implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} GROUP BY url ORDER BY count DESC LIMIT {};".format(  # noqa
-            self.sql['date_range'], self.sql['exclude_apps'], limit)
+        query = "SELECT url, COUNT(*) AS count FROM mappedmetric WHERE implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} AND {} AND {} GROUP BY url ORDER BY count DESC LIMIT {};".format(  # noqa
+            self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+            limit,
+        )
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         print('{} most used Warehouse calls:'.format(limit))
@@ -200,8 +232,13 @@ class Stats(object):
         result = self.cursor.fetchall()
         times_to_first_call = []
         for consumer in result:
-            query = 'SELECT date_c FROM mappedmetric WHERE {} AND {} AND consumerid = cast({} AS VARCHAR) ORDER BY date_c DESC LIMIT 1;'.format(  # noqa
-                self.sql['date_range'], self.sql['exclude_apps'], consumer[1])
+            query = 'SELECT date_c FROM mappedmetric WHERE {} AND {} AND {} AND {} AND consumerid = cast({} AS VARCHAR) ORDER BY date_c DESC LIMIT 1;'.format(  # noqa
+                self.sql['date_range'],
+                self.sql['exclude_apps'],
+                self.sql['exclude_functions'],
+                self.sql['exclude_url_pattern'],
+                consumer[1],
+            )
             self.cursor.execute(query)
             result = self.cursor.fetchone()
             if result:
@@ -221,15 +258,25 @@ class Stats(object):
         """
         # Naively adding consumer.id to SELECT will change ranking if some
         # people use same email addressfor different consumers
-        query = "SELECT COUNT(DISTINCT mappedmetric.implementedbypartialfunction) AS count, consumer.developeremail FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND {} AND {} AND mappedmetric.consumerid = CAST(consumer.id AS character varying) GROUP BY consumer.developeremail ORDER BY count DESC LIMIT {};".format(  # noqa
-            self.sql['date_range'], self.sql['exclude_apps'], limit)
+        query = "SELECT COUNT(DISTINCT mappedmetric.implementedbypartialfunction) AS count, consumer.developeremail FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND {} AND {} AND {} AND {} AND mappedmetric.consumerid = CAST(consumer.id AS character varying) GROUP BY consumer.developeremail ORDER BY count DESC LIMIT {};".format(  # noqa
+            self.sql['date_range'],
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+            limit,
+        )
         self.cursor.execute(query)
         top_callers = self.cursor.fetchall()
         msg = '{} most diverse usage of API calls by developer email address:'
         print(msg.format(limit))
         for caller in top_callers:
-            query = "SELECT DISTINCT mappedmetric.implementedbypartialfunction FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND mappedmetric.consumerid = CAST(consumer.id AS character varying) AND consumer.developeremail = '{}' AND {}".format(  # noqa
-                caller[1], self.sql['date_range'])
+            query = "SELECT DISTINCT mappedmetric.implementedbypartialfunction FROM mappedmetric, consumer WHERE mappedmetric.implementedbypartialfunction <> '' AND mappedmetric.consumerid = CAST(consumer.id AS character varying) AND consumer.developeremail = '{}' AND {} AND {} AND {} AND {}".format(  # noqa
+                caller[1],
+                self.sql['date_range'],
+                self.sql['exclude_apps'],
+                self.sql['exclude_functions'],
+                self.sql['exclude_url_pattern'],
+            )
             self.cursor.execute(query)
             result = self.cursor.fetchall()
             calls = map(lambda x: x[0], result)
@@ -240,10 +287,13 @@ class Stats(object):
         """
         Prints how many calls were made in total per given delta
         """
-        query_fmt = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {};'
+        query_fmt = 'SELECT COUNT(*) FROM mappedmetric WHERE {} AND {} AND {} AND {};'  # noqa
         query_fmt = query_fmt.format(
             SQL_DATE_RANGE_FORMAT,
-            self.sql['exclude_apps'])
+            self.sql['exclude_apps'],
+            self.sql['exclude_functions'],
+            self.sql['exclude_url_pattern'],
+        )
         date_start = datetime.datetime.strptime(self.date_start, DATE_FORMAT)
         date_end = datetime.datetime.strptime(self.date_end, DATE_FORMAT)
         date_from = date_start
