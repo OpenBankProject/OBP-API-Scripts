@@ -30,6 +30,8 @@ LICENSE = {
 # The following settings are for generate_stats.py only:
 ###################################################################
 
+APPNAME_APIEXPLORER = 'API Explorer'
+
 # Database connection details
 DATABASE = {
     'host': 'localhost',

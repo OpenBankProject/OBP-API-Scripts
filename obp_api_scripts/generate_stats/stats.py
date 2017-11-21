@@ -8,6 +8,7 @@ import psycopg2
 import statistics
 
 from settings import (
+    APPNAME_APIEXPLORER,
     DATABASE,
     DATE_START, DATE_END,
     EXCLUDE_APPS, EXCLUDE_FUNCTIONS, EXCLUDE_URL_PATTERN,
@@ -36,6 +37,7 @@ class Stats(object):
     """
     Calculate statistics about the usage of a sandbox
     """
+    total_calls = 0
 
     def __init__(self):
         self.date_start = DATE_START
@@ -91,7 +93,22 @@ class Stats(object):
         )
         self.cursor.execute(query)
         result = self.cursor.fetchone()
-        print('Total calls: {}'.format(result[0]))
+        self.total_calls = result[0]
+        print('Total calls: {}'.format(self.total_calls))
+
+    @pretty_decoration
+    def total_calls_apiexplorer(self):
+        """
+        Prints how many calls were made in total
+        """
+        query = "SELECT COUNT(*) FROM mappedmetric WHERE {} AND appname = '{}';".format(  # noqa
+            self.sql['date_range'],
+            APPNAME_APIEXPLORER,
+        )
+        self.cursor.execute(query)
+        calls = self.cursor.fetchone()[0]
+        percentage = round(calls * 100 / self.total_calls)
+        print('Total calls using API Explorer: {} ({}%)'.format(calls, percentage))
 
     @pretty_decoration
     def apps(self):
@@ -356,6 +373,7 @@ class Stats(object):
 
     def run_all(self):
         self.total_calls()
+        self.total_calls_apiexplorer()
         self.calls_per_day()
         self.calls_per_half_day()
         self.calls_per_hour()
