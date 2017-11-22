@@ -389,6 +389,15 @@ class Stats(object):
         print('Sanity check: {} calls'.format(sum))
 
     @pretty_decoration
+    def calls_per_month(self):
+        """
+        Convenience function to print number of calls per month
+        It is actually 30 days, not a month
+        """
+        print('Calls per Day (Server timezone is {}):'.format(SERVER_TIMEZONE))
+        self.calls_per_delta(days=30)
+
+    @pretty_decoration
     def calls_per_day(self):
         """
         Convenience function to print number of calls per day
@@ -418,6 +427,7 @@ class Stats(object):
         self.total_calls()
         self.total_calls_apiexplorer()
         self.total_calls_pre_v300()
+        self.calls_per_month()
         self.calls_per_day()
         self.calls_per_half_day()
         self.calls_per_hour()
