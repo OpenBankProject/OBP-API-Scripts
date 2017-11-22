@@ -267,7 +267,7 @@ class Stats(object):
         """
         Prints the top apps using the Elasticsearch warehouse
         """
-        query = "SELECT mappedmetric.appname as appname, consumer.description as appdescription, COUNT(*) AS count FROM mappedmetric, consumer WHERE mappedmetric.appname = consumer.name AND mappedmetric.implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} AND {} AND {} GROUP BY appname, appdescription ORDER BY count DESC LIMIT {};".format(  # noqa
+        query = "SELECT mappedmetric.appname as appname, consumer.developeremail as email, consumer.description as description, COUNT(*) AS count FROM mappedmetric, consumer WHERE mappedmetric.appname = consumer.name AND mappedmetric.implementedbypartialfunction LIKE 'elasticSearchWarehouse%' AND {} AND {} AND {} AND {} GROUP BY appname, email, description ORDER BY count DESC LIMIT {};".format(  # noqa
             self.sql['date_range'],
             self.sql['exclude_apps'],
             self.sql['exclude_functions'],
@@ -278,7 +278,7 @@ class Stats(object):
         result = self.cursor.fetchall()
         print('{} top apps using the Warehouse:'.format(limit))
         for call in result:
-            print('{}: {}\n{}\n'.format(call[0], call[2], call[1]))
+            print('{} / {}: {}\n{}\n'.format(call[0], call[1], call[3], call[2]))
 
     @pretty_decoration
     def users_with_CanSearchWarehouse(self):
