@@ -60,13 +60,17 @@ class Stats(object):
 
         users = {}
         print('Used apps between {} and {} or between {} and {}:'.format(DATE_START, DATE_BEFORE, DATE_AFTER, DATE_END))
-        print('User email address /// App name /// App description /// CanSearchWarehouse')  # noqa
+        print('User email address,App name,App description,User CanSearchWarehouse')  # noqa
         print('/' * 78)
         for a in apps:
             users[a[0]] = True
             can_search_warehouse = True if a[0] in warehouse_users else False
-            print('{} /// {} /// {} /// {}'.format(
-                a[0], a[1], a[2], can_search_warehouse))
+            print('{},{},{},{}'.format(
+                a[0],
+                a[1].replace(',', '\\,'),
+                a[2].replace(',', '\\,'),
+                can_search_warehouse)
+            )
         print('/' * 78)
         print('Total number of apps: {}'.format(len(apps)))
         print('Total number of users: {}'.format(len(users)))
@@ -102,7 +106,7 @@ class Stats(object):
         Prints how many calls were made in total with given app names
         """
         wrapped_app_names = ', '.join(
-            map(lambda x: "'{}'".format(x), app_names))
+            map(lambda x: "'{}'".format(x.replace("'", "''")), app_names))
         query_app_names = "SELECT COUNT(*) FROM mappedmetric WHERE appname IN ({})".format(wrapped_app_names)  # noqa
         query_fmt = query_app_names + " AND {}"
         date_range = self.sql['date_range'].replace('createdat', 'date_c')
