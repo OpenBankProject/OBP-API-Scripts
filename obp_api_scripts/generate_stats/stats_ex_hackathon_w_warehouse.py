@@ -135,4 +135,4 @@ class Stats(object):
 
     def run_all(self):
         app_names = self.apps()
-        #self.calls(app_names)
+        self.calls(app_names)
