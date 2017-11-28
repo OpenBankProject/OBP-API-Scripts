@@ -53,9 +53,14 @@ EXCLUDE_FUNCTIONS = ['getMetrics', 'getConnectorMetrics']
 EXCLUDE_URL_PATTERN = '%management/metrics%'
 
 # When the collection of data should start
-DATE_START = '2017-07-05 00:00:00'
+DATE_START = '2017-01-01 00:00:00'
 # When the collection of data should end
-DATE_END = '2017-07-08 00:00:00'
+DATE_END = '2018-01-01 00:00:00'
+
+# Collection of data between DATE_START and DATE_BEFORE (exclude hackathon)
+DATE_BEFORE = '2017-06-08 00:00:00'
+# Collection of data between DATE_AFTER and DATE_END (exclude hackathon)
+DATE_AFTER = '2017-06-12 00:00:00'
 
 # Timezone of the database server
 SERVER_TIMEZONE = 'UTC'
