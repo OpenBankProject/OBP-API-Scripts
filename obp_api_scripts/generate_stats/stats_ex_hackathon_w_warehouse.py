@@ -42,6 +42,23 @@ class Stats(object):
         self.cursor.close()
         self.connection.close()
 
+    def get_apps(self):
+        query = "SELECT resourceuser.email, consumer.name, consumer.description FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {};".format(self.sql['date_range'])  # noqa
+        self.cursor.execute(query)
+        apps = self.cursor.fetchall()
+
+        query = "SELECT DISTINCT appname FROM mappedmetric WHERE date_c >= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss') AND date_c <= to_timestamp('{}', 'yyyy-mm-dd hh24:mi:ss')".format(DATE_BEFORE, DATE_AFTER)
+        self.cursor.execute(query)
+        apps_before_after = self.cursor.fetchall()
+        # Remove tuple:
+        apps_before_after = list(map(lambda x: x[0], apps_before_after))
+
+        filtered_apps = []
+        for a in apps:
+            if a[1] not in apps_before_after:
+                filtered_apps.append(a)
+        return filtered_apps
+
     def get_warehouse_users(self):
         query = "SELECT DISTINCT resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.email"  # noqa
         self.cursor.execute(query)
@@ -54,14 +71,11 @@ class Stats(object):
     def apps(self):
         """
         Gets apps which have been used before DATE_BEFORE and after DATE_AFTER,
-        TODO: Filter apps actually used between DATE_BEFORE and DATE_AFTER
         """
-        query = "SELECT resourceuser.email, consumer.name, consumer.description FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {};".format(self.sql['date_range'])  # noqa
-        self.cursor.execute(query)
-        apps = self.cursor.fetchall()
+        apps = self.get_apps()
         warehouse_users = self.get_warehouse_users()
-
         app_users = {}
+
         print('Used apps between {} and {} or between {} and {}:'.format(DATE_START, DATE_BEFORE, DATE_AFTER, DATE_END))
         print('User email address,App name,App description,User CanSearchWarehouse')  # noqa
         print('/' * 78)
@@ -81,7 +95,7 @@ class Stats(object):
         return names
 
 
-    def calls_date_range(self, query_fmt, date_start, date_end):
+    def calls_by_day(self, query_fmt, date_start, date_end):
         """
         Prints a distribution of API calls by day
         Called by method calls
@@ -118,9 +132,9 @@ class Stats(object):
         result = self.cursor.fetchone()
         print('Total calls: {}'.format(result[0]))
 
-        sum0 = self.calls_date_range(query_fmt, DATE_START, DATE_BEFORE)
+        sum0 = self.calls_by_day(query_fmt, DATE_START, DATE_BEFORE)
         print('-' * 10)
-        sum1 = self.calls_date_range(query_fmt, DATE_AFTER, DATE_END)
+        sum1 = self.calls_by_day(query_fmt, DATE_AFTER, DATE_END)
         print('Sanity check: {} calls'.format(sum0+sum1))
 
     def run_all(self):
