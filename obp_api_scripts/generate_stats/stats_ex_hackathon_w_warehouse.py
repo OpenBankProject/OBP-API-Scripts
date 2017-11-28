@@ -43,7 +43,7 @@ class Stats(object):
         self.connection.close()
 
     def get_apps(self):
-        query = "SELECT resourceuser.email, consumer.name, consumer.description FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {};".format(self.sql['date_range'])  # noqa
+        query = "SELECT consumer.id, consumer.name, consumer.description, resourceuser.email FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {} ORDER BY consumer.id;".format(self.sql['date_range'])  # noqa
         self.cursor.execute(query)
         apps = self.cursor.fetchall()
 
@@ -77,17 +77,13 @@ class Stats(object):
         app_users = {}
 
         print('Used apps between {} and {} or between {} and {}:'.format(DATE_START, DATE_BEFORE, DATE_AFTER, DATE_END))
-        print('User email address,App name,App description,User CanSearchWarehouse')  # noqa
+        print('App Id,App name,App description,User email address, User CanSearchWarehouse')  # noqa
         print('/' * 78)
         for a in apps:
-            app_users[a[0]] = True
-            can_search_warehouse = True if a[0] in warehouse_users else False
-            print('{},{},{},{}'.format(
-                a[0],
-                a[1].replace(',', '\\,'),
-                a[2].replace(',', '\\,'),
-                can_search_warehouse)
-            )
+            app_users[a[3]] = True
+            can_search_warehouse = True if a[3] in warehouse_users else False
+            print('{},"{}","{}",{},{}'.format(
+                a[0], a[1], a[2], a[3], can_search_warehouse))
         print('/' * 78)
         print('Total number of apps: {}'.format(len(apps)))
         print('Total number of app users: {}'.format(len(app_users)))
@@ -139,4 +135,4 @@ class Stats(object):
 
     def run_all(self):
         app_names = self.apps()
-        self.calls(app_names)
+        #self.calls(app_names)
