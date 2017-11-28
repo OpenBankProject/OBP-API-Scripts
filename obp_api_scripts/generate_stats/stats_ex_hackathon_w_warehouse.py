@@ -42,28 +42,31 @@ class Stats(object):
         self.cursor.close()
         self.connection.close()
 
-    @pretty_decoration
-    def apps(self):
-        """
-        Gets apps which have been used before DATE_BEFORE and after DATE_AFTER,
-        TODO: Filter apps used between DATE_BEFORE and DATE_AFTER
-        """
-        query = "SELECT resourceuser.email, consumer.name, consumer.description FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {};".format(self.sql['date_range'])  # noqa
-        self.cursor.execute(query)
-        apps = self.cursor.fetchall()
-
+    def get_warehouse_users(self):
         query = "SELECT DISTINCT resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ ORDER BY resourceuser.email"  # noqa
         self.cursor.execute(query)
         warehouse_users = self.cursor.fetchall()
         # Remove tuple:
         warehouse_users = list(map(lambda x: x[0], warehouse_users))
+        return warehouse_users
 
-        users = {}
+    @pretty_decoration
+    def apps(self):
+        """
+        Gets apps which have been used before DATE_BEFORE and after DATE_AFTER,
+        TODO: Filter apps actually used between DATE_BEFORE and DATE_AFTER
+        """
+        query = "SELECT resourceuser.email, consumer.name, consumer.description FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND {};".format(self.sql['date_range'])  # noqa
+        self.cursor.execute(query)
+        apps = self.cursor.fetchall()
+        warehouse_users = self.get_warehouse_users()
+
+        app_users = {}
         print('Used apps between {} and {} or between {} and {}:'.format(DATE_START, DATE_BEFORE, DATE_AFTER, DATE_END))
         print('User email address,App name,App description,User CanSearchWarehouse')  # noqa
         print('/' * 78)
         for a in apps:
-            users[a[0]] = True
+            app_users[a[0]] = True
             can_search_warehouse = True if a[0] in warehouse_users else False
             print('{},{},{},{}'.format(
                 a[0],
@@ -73,7 +76,7 @@ class Stats(object):
             )
         print('/' * 78)
         print('Total number of apps: {}'.format(len(apps)))
-        print('Total number of users: {}'.format(len(users)))
+        print('Total number of app users: {}'.format(len(app_users)))
         names = list(map(lambda x: x[1], apps))
         return names
 
