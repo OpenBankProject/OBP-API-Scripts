@@ -64,3 +64,7 @@ DATE_AFTER = '2017-06-12 00:00:00'
 
 # Timezone of the database server
 SERVER_TIMEZONE = 'UTC'
+
+# List of email addresses to use for a table which shows these users' apps
+# and warehouse access
+APPS_USER_EMAIL_CANSEARCHWAREHOUSE_ADDRESSES = []

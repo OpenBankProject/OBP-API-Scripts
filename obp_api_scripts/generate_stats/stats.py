@@ -13,7 +13,8 @@ from settings import (
     DATABASE,
     DATE_START, DATE_END,
     EXCLUDE_APPS, EXCLUDE_FUNCTIONS, EXCLUDE_URL_PATTERN,
-    SERVER_TIMEZONE
+    SERVER_TIMEZONE,
+    APPS_USER_EMAIL_CANSEARCHWAREHOUSE_ADDRESSES
 )
 
 
@@ -423,6 +424,59 @@ class Stats(object):
         print(msg.format(SERVER_TIMEZONE))
         self.calls_per_delta(hours=1)
 
+    def get_apps(self, email_addresses):
+        """
+        Gets consumer id, name, description and user email address
+        """
+
+        wrapped_email_addresses = ', '.join(map(
+            lambda x: "'{}'".format(x), email_addresses))
+        query = "SELECT consumer.id, consumer.name, consumer.description, resourceuser.email FROM resourceuser, consumer WHERE resourceuser.userid_ = consumer.createdbyuserid AND name <> '' AND resourceuser.email IN ({}) ORDER BY consumer.id;".format(wrapped_email_addresses) # noqa
+        self.cursor.execute(query)
+        apps = self.cursor.fetchall()
+        return apps
+
+    def get_user_email_cansearchwarehouse(self, email_addresses):
+        """
+        Gets user email address for users with role CanSearchWarehouse
+        """
+        wrapped_email_addresses = ', '.join(map(
+            lambda x: "'{}'".format(x), email_addresses))
+        query = "SELECT DISTINCT resourceuser.email FROM resourceuser, mappedentitlement WHERE mappedentitlement.mrolename = 'CanSearchWarehouse' AND mappedentitlement.muserid = resourceuser.userid_ AND resourceuser.email IN ({}) ORDER BY resourceuser.email".format(wrapped_email_addresses)  # noqa
+        self.cursor.execute(query)
+        warehouse_users = self.cursor.fetchall()
+        # Remove tuple:
+        warehouse_users = list(map(lambda x: x[0], warehouse_users))
+        return warehouse_users
+
+    @pretty_decoration
+    def apps_user_email_cansearchwarehouse(self):
+        """
+        Prints apps, user email addresses and if the users have access to the
+        warehouse
+        ONLY for email addresses of users from
+        settings.APPS_USER_EMAIL_CANSEARCHWAREHOUSE_ADDRESSES !
+        """
+        apps = self.get_apps(
+            APPS_USER_EMAIL_CANSEARCHWAREHOUSE_ADDRESSES)
+        warehouse_users = self.get_user_email_cansearchwarehouse(
+            APPS_USER_EMAIL_CANSEARCHWAREHOUSE_ADDRESSES)
+        app_users = {}
+
+        print('App Id,App name,App description,User email address, User CanSearchWarehouse')  # noqa
+        print('/' * 78)
+        for a in apps:
+            email = a[3]
+            app_users[email] = True
+            can_search_warehouse = True if email in warehouse_users else False
+            print('{},"{}","{}",{},{}'.format(
+                a[0], a[1], a[2], email, can_search_warehouse))
+        print('/' * 78)
+        print('Total number of apps: {}'.format(len(apps)))
+        print('Total number of app users: {}'.format(len(app_users)))
+        names = list(map(lambda x: x[1], apps))
+        return names
+
     def run_all(self):
         self.total_calls()
         self.total_calls_apiexplorer()
@@ -442,3 +496,4 @@ class Stats(object):
         self.users_with_CanSearchWarehouse()
         self.median_time_from_consumer_registration_to_first_api_call()
         self.most_diverse_usage(5)
+        self.apps_user_email_cansearchwarehouse()
