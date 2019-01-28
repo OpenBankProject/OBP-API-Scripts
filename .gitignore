@@ -1,2 +1,6 @@
 *.swp
 __pycache__
+/requirements.txt
+/settings.py
+/object
+/run
