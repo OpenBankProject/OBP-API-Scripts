@@ -45,10 +45,14 @@ class User:
         submit_button = driver.find_element_by_class_name("submit")
         submit_button.click()
         print(driver.current_url)
+        driver.close()
         p = re.compile(".*?oauth_token=(.*)&oauth_verifier=(.*)")
         result = p.search(driver.current_url)
-        self.oauth_verifier = result.group(2)
-        driver.close()
+        try:
+            self.oauth_verifier = result.group(2)
+        except:
+            print("login failed!!!")
+            return None
 
         print("oauth_token: {}\noauth_secret: {}".format(self.oauth_token, self.oauth_secret))
 
