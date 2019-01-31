@@ -63,8 +63,7 @@ if __name__ == "__main__":
                     print("Posting a customer for bank {}".format(bank.short_name))
                     url = settings.API_HOST+"/obp/v3.1.0/banks/{}/customers".format(bank.id)
                     result2 = session.request('POST', url, json=customer.to_json(current_user['user_id']), verify=False)
-                    print(result2)
                     if result2.status_code==201:
                         print("saved {} as customer {}".format(customer.customer_number, result2.content))
                     else:
-                        print("did NOT save customer {}".format(result2))
+                        print("did NOT save customer {}".format(result2.error))

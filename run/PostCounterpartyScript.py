@@ -49,9 +49,9 @@ if __name__ == "__main__":
                         url = settings.API_HOST + "/obp/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + view['id'] + "/other_accounts/"+other_accounts['id']+"/metadata/image_url"
                         result = session.request('POST', url, json = json_tmp, verify=False)
                         if result.status_code == 201:
-                            print("saved " + logoUrl + " as imageURL for counterparty "+ other_accounts['id'])
+                            print("Saved " + logoUrl + " as imageURL for counterparty "+ other_accounts['id'])
                         else:
-                            print("save failed")
+                            print("Save failed. {}".format(result.error))
                     else:
                         print("did NOT save " + logoUrl + " as imageURL for counterparty "+ other_accounts['id'])
 
@@ -61,9 +61,9 @@ if __name__ == "__main__":
                               view['id'] + "/other_accounts/" + other_accounts['id'] + "/metadata/url"
                         result = session.request('POST', url, json=json_tmp, verify=False)
                         if result.status_code == 201:
-                            print("saved " + cp['homePageUrl'] + " as URL for counterparty "+ other_accounts['id'])
+                            print("Saved " + cp['homePageUrl'] + " as URL for counterparty "+ other_accounts['id'])
                         else:
-                            print("save failed")
+                            print("Save failed. {}".format(result.error))
                     else:
                         print("did NOT save " + cp['homePageUrl'] + " as URL for counterparty "+ other_accounts['id'])
 
@@ -75,9 +75,9 @@ if __name__ == "__main__":
                         url = settings.API_HOST + "/obp/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + view['id'] + "/other_accounts/" + other_accounts['id'] + "/metadata/more_info"
                         result = session.request('POST', url, json=json_tmp, verify=False)
                         if result.status_code==201:
-                            print("saved " + moreInfo + " as more_info for counterparty "+ other_accounts['id'])
+                            print("Saved " + moreInfo + " as more_info for counterparty "+ other_accounts['id'])
                         else:
-                            print("save failed")
+                            print("Save failed. {}".format(result.error))
                     else:
                         print("did NOT save more_info for counterparty "+ other_accounts['id'])
 
