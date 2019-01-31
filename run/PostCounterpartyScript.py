@@ -15,18 +15,12 @@ if __name__ == "__main__":
     for user_dict in json_object_user['users']:
         user = User(user_dict['user_name'], user_dict['password'], user_dict['email'])
         print("login as user: ")
-        user.oauth_login()
+        session = user.oauth_login()
         print("get users private accounts")
         private_account = user.get_user_private_account()
         account_list = json.loads(private_account)['accounts']
         print("ok!!!")
 
-        session = OAuth1Session(
-            settings.OAUTH_CONSUMER_KEY,
-            settings.OAUTH_CONSUMER_SECRET,
-            resource_owner_key=user.access_token,
-            resource_owner_secret=user.access_secret,
-        )
         print("get other accounts for the accounts")
         for account in account_list:
             bank_id = account['bank_id']
@@ -34,6 +28,7 @@ if __name__ == "__main__":
             account_id = account['id']
             view = account['views_available'][0]
             result = user.get_user_other_account(bank_id, account_id, view['id'])
+            print(type(result))
             other_accounts_list = json.loads(result)['other_accounts']
 
             print("bank_id: {}".format(bank_id))
@@ -49,10 +44,10 @@ if __name__ == "__main__":
                 for cp in records:
                     print("couterparty is Region {} Name {} Home Page {}".format(cp['region'],cp['name'],cp['homePageUrl']))
                     logoUrl = cp['homePageUrl'] if ("http://www.brandprofiles.com" in cp['logoUrl']) else cp['logoUrl']
-                    if (logoUrl.startswith("http") and other_accounts['metadata']['image_URL'] is not None):
-                        json = {"image_URL": logoUrl}
+                    if logoUrl.startswith("http") and other_accounts['metadata']['image_URL'] is None:
+                        json_tmp = {"image_URL": logoUrl}
                         url = settings.API_HOST + "/obp/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + view['id'] + "/other_accounts/"+other_accounts['id']+"/metadata/image_url"
-                        result = session.request('POST', url, json = json, verify=False)
+                        result = session.request('POST', url, json = json_tmp, verify=False)
                         if result.status_code == 201:
                             print("saved " + logoUrl + " as imageURL for counterparty "+ other_accounts['id'])
                         else:
@@ -60,11 +55,11 @@ if __name__ == "__main__":
                     else:
                         print("did NOT save " + logoUrl + " as imageURL for counterparty "+ other_accounts['id'])
 
-                    if (cp['homePageUrl'].startswith("http") and not cp['homePageUrl'].endswith("jpg") and not cp['homePageUrl'].endswith("png") and other_accounts['metadata']['URL'] is not None):
-                        json = {"URL": cp['homePageUrl']}
+                    if (cp['homePageUrl'].startswith("http") and not cp['homePageUrl'].endswith("jpg") and not cp['homePageUrl'].endswith("png") and other_accounts['metadata']['URL'] is None):
+                        json_tmp = {"URL": cp['homePageUrl']}
                         url = settings.API_HOST + "/obp/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + \
                               view['id'] + "/other_accounts/" + other_accounts['id'] + "/metadata/url"
-                        result = session.request('POST', url, json=json, verify=False)
+                        result = session.request('POST', url, json=json_tmp, verify=False)
                         if result.status_code == 201:
                             print("saved " + cp['homePageUrl'] + " as URL for counterparty "+ other_accounts['id'])
                         else:
@@ -72,13 +67,13 @@ if __name__ == "__main__":
                     else:
                         print("did NOT save " + cp['homePageUrl'] + " as URL for counterparty "+ other_accounts['id'])
 
-                    if (cp['category'] is not None and other_accounts['metadata']['more_info'] is not None):
+                    if (cp['category'] is not None and other_accounts['metadata']['more_info'] is None):
                         categoryBits = cp['category'].split("_")
                         moreInfo = categoryBits[0]
 
-                        json = {"more_info": moreInfo}
-                        url = settings.API_HOST + "/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + view['id'] + "/other_accounts/" + other_accounts['id'] + "/metadata/more_info"
-                        result = session.request('POST', url, json=json, verify=False)
+                        json_tmp = {"more_info": moreInfo}
+                        url = settings.API_HOST + "/obp/v3.1.0/banks/" + bank_id + "/accounts/" + account_id + "/" + view['id'] + "/other_accounts/" + other_accounts['id'] + "/metadata/more_info"
+                        result = session.request('POST', url, json=json_tmp, verify=False)
                         if result.status_code==201:
                             print("saved " + moreInfo + " as more_info for counterparty "+ other_accounts['id'])
                         else:

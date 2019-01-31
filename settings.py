@@ -5,7 +5,7 @@ API_HOST = 'http://127.0.0.1:8080'
 
 API_VERSION = '3.1.0'
 
-OAUTH_BASE_URL = 'http://127.0.0.1:9090'
+LOGIN_AGENT_URL = 'http://127.0.0.1:9090'
 
 OAUTH_TOKEN_PATH = '/oauth/initiate'
 OAUTH_AUTHORIZATION_PATH = '/oauth/authorize'
