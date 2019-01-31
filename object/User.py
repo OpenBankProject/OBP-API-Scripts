@@ -22,7 +22,7 @@ class User:
         session = OAuth1Session(
             settings.OAUTH_CONSUMER_KEY,
             client_secret=settings.OAUTH_CONSUMER_SECRET,
-            callback_uri=settings.OAUTH_BASE_URL+settings.OAUTH_AUTHORIZATION_PATH,
+            callback_uri=settings.LOGIN_AGENT_URL +settings.OAUTH_AUTHORIZATION_PATH,
         )
 
         url = settings.API_HOST + settings.OAUTH_TOKEN_PATH
@@ -44,39 +44,38 @@ class User:
         password_element.send_keys(self.password)
         submit_button = driver.find_element_by_class_name("submit")
         submit_button.click()
-        print(driver.current_url)
-        p = re.compile(".*?oauth_token=(.*)&oauth_verifier=(.*)")
-        result = p.search(driver.current_url)
-        self.oauth_verifier = result.group(2)
+        current_url = driver.current_url
+        print(current_url)
         driver.close()
+        p = re.compile(".*?oauth_token=(.*)&oauth_verifier=(.*)")
+        result = p.search(current_url)
+        try:
+            self.oauth_verifier = result.group(2)
+        except:
+            print("login failed!!!")
+            return None
 
         print("oauth_token: {}\noauth_secret: {}".format(self.oauth_token, self.oauth_secret))
 
-        session = OAuth1Session(
+        self.session = OAuth1Session(
             settings.OAUTH_CONSUMER_KEY,
             settings.OAUTH_CONSUMER_SECRET,
             resource_owner_key=self.oauth_token,
             resource_owner_secret=self.oauth_secret,
             verifier=self.oauth_verifier
         )
-        session.parse_authorization_response(authorization_url)
+        self.session.parse_authorization_response(authorization_url)
         url = settings.API_HOST + settings.OAUTH_ACCESS_TOKEN_PATH
-        response = session.fetch_access_token(url)
+        response = self.session.fetch_access_token(url)
         self.access_token = response.get('oauth_token')
         self.access_secret = response.get('oauth_token_secret')
         print("access_token: {}\naccess_secret: {}".format(self.access_token, self.access_secret))
 
-        return session
+        return self.session
 
     def get_user_private_account(self):
 
-        session = OAuth1Session(
-            settings.OAUTH_CONSUMER_KEY,
-            settings.OAUTH_CONSUMER_SECRET,
-            resource_owner_key=self.access_token,
-            resource_owner_secret=self.access_secret,
-        )
-        result = session.get(settings.API_HOST+"/obp/v3.1.0/accounts/private")
+        result = self.session.get(settings.API_HOST+"/obp/v1.2.1/accounts/private")
         if result.status_code==200:
             return result.content
         else:
