@@ -79,7 +79,7 @@ FILE_ROOT = '<path>'
 ## run PostCounterparty.py
 
 ```bash
-$ python OBP\run\PostCounterpartyScript.py
+$ python run\PostCounterpartyScript.py
 ```
 
 ## run PostCustomer.py
@@ -87,5 +87,5 @@ $ python OBP\run\PostCounterpartyScript.py
 make sure your admin account have the roles below: 
 CanCreateCustomer or CanCreateCustomerAtAnyBank
 ```bash
-$ python OBP\run\PostCustomerScript.py
+$ python run\PostCustomerScript.py
 ```
