@@ -63,7 +63,7 @@ API_HOST = '<hostname>'
 API_VERSION = '3.1.0'
 
 # API Tester hostname, e.g. https://apitester.openbankproject.com
-REDIRECT_URL = 'http://127.0.0.1:9090'
+LOGIN_AGENT_URL = 'http://127.0.0.1:9090'
 
 OAUTH_TOKEN_PATH = '/oauth/initiate'
 OAUTH_AUTHORIZATION_PATH = '/oauth/authorize'
